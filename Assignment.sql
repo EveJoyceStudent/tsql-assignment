@@ -254,4 +254,118 @@ BEGIN
     PRINT (@OUTPUTVALUE);
 END
 
- --------------- TODO: From here --------------- 
+-- UPD_CUST_SALESYTD - Update one customer's sales_ytd value in the customer table
+-- Parameters
+-- pcustid      Int         Customer Id
+-- pamt     	Money       Change Amount
+-- Requirements	Change one customer's SALES_YTD value by the pamt value. 
+
+-- Exceptions
+-- 	No rows updated	                        50070.  Customer ID not found
+-- 	pamt outside range:-999.99 to 999.99	50080.  Amount out of range
+-- 	Other	                                50000.  Use value of error_message()
+
+
+GO
+
+IF OBJECT_ID('UPD_CUST_SALESYTD') IS NOT NULL
+DROP PROCEDURE UPD_CUST_SALESYTD;
+GO
+
+CREATE PROCEDURE UPD_CUST_SALESYTD @PCUSTID INT, @PAMT MONEY AS
+BEGIN
+    BEGIN TRY
+
+    IF @PAMT<-999.99 OR @PAMT>999.99
+        THROW 50080, 'Amount out of range', 1
+
+    -- SELECT SALES_YTD
+    UPDATE CUSTOMER
+    SET SALES_YTD += @PAMT
+    WHERE CUSTID = @PCUSTID
+
+    IF @@ROWCOUNT = 0
+    THROW 50070, 'Customer ID not found', 1
+
+    END TRY
+    BEGIN CATCH
+        if ERROR_NUMBER() in (50070, 50080)
+            THROW
+        ELSE
+            BEGIN
+                DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+                THROW 50000, @ERRORMESSAGE, 1
+            END; 
+    END CATCH;
+END;
+
+GO
+
+--------------- TODO: Add testing --------------- 
+---- testing ----
+
+-- GET_PROD_STRING - Get one products details from product table
+-- Parameters
+-- 	pprodid         Int             Product Id
+-- 	pReturnString	NVARCHAR(1000)	OUT Parameter
+-- Requirements	Assign a string to the OUT parameter using the format:
+-- "Prodid: 999  Name:XXXXXXXXXXXXXXXXXXXX  Price 999.99 SalesYTD:99999.99"
+
+-- Exceptions
+-- 	No matching product id found	50090.  Product ID not found
+-- 	Other	                        50000.  Use value of error_message()
+
+
+GO
+
+IF OBJECT_ID('GET_PROD_STRING') IS NOT NULL
+DROP PROCEDURE GET_PROD_STRING;
+GO
+
+CREATE PROCEDURE GET_PROD_STRING @PRODID INT, @pReturnString NVARCHAR(1000) OUTPUT AS
+
+BEGIN
+    DECLARE @PRODNAME NVARCHAR(100), @PRICE MONEY, @SALESYTD MONEY;
+
+    BEGIN TRY
+    SELECT @PRODNAME = PRODNAME, @PRICE = SELLING_PRICE, @SALESYTD = SALES_YTD
+    FROM PRODUCT 
+    WHERE PRODID = @PRODID
+
+    IF @@ROWCOUNT = 0
+    THROW 50090, 'Product ID not found', 1
+
+    SET @pReturnString = CONCAT('Prodid: ', @PRODID, 'Name: ', @PRODNAME, 'Price: ', @PRICE, 'SalesYTD: ', @SALESYTD);
+
+    END TRY
+    BEGIN CATCH
+        if ERROR_NUMBER() = 50090
+            THROW
+        ELSE
+            BEGIN
+                DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+                THROW 50000, @ERRORMESSAGE, 1
+            END; 
+    END CATCH;
+END;
+
+GO
+
+---- testing ----
+BEGIN
+    DECLARE @OUTPUTVALUE NVARCHAR(100);
+    EXEC GET_PROD_STRING @PRODID=2000, @preturnstring = @OUTPUTVALUE OUTPUT;
+    PRINT (@OUTPUTVALUE);
+END
+
+--------------- TODO: finish procedure --------------- 
+-- UPD_PROD_SALESYTD - Update one product's sales_ytd value in the product table
+-- Parameters
+-- 	pprodid         Int     Product Id
+-- 	pamt            Money	Change Amount
+-- Requirements	Change one product's SALES_YTD value by the pamt value. 
+-- Exceptions
+-- 	No rows updated                         50100. Product ID not found
+-- 	pamt outside range:-999.99 to 999.99	50110. Amount out of range
+-- 	Other                                   50000. Use value of error_message()
+
