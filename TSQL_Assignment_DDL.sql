@@ -1,6 +1,6 @@
 -- CREATE DATABASE assignment;
 
--- USE assignment;
+USE assignment;
 
 IF OBJECT_ID('Sale') IS NOT NULL
 DROP TABLE SALE;

@@ -1,15 +1,13 @@
-USE assignment;
-
-SELECT sp.name
-    , sp.default_database_name
-FROM sys.server_principals sp
-WHERE sp.name = SUSER_SNAME();
-
+-- USE assignment;
 -- ALTER LOGIN admin WITH DEFAULT_DATABASE = assignment;
 
--- Get a list of tables and views in the current database
-SELECT *
-FROM INFORMATION_SCHEMA.TABLES
+-- SELECT sp.name
+--     , sp.default_database_name
+-- FROM sys.server_principals sp
+-- WHERE sp.name = SUSER_SNAME();
+
+-- SELECT *
+-- FROM INFORMATION_SCHEMA.TABLES
 
 GO
 
@@ -87,11 +85,8 @@ CREATE PROCEDURE DELETE_ALL_CUSTOMERS AS
 
 BEGIN
     BEGIN TRY
-        DECLARE @NUMCUST INT;
-        SELECT @NUMCUST = COUNT(*) FROM CUSTOMER
-
         DELETE FROM CUSTOMER;
-        RETURN @NUMCUST;
+        RETURN @@ROWCOUNT;
     END TRY
     BEGIN CATCH
         DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
@@ -165,13 +160,11 @@ END;
 GO
 
 -- testing
--- EXEC ADD_PRODUCT @PRODID = 1, @PRODNAME ='Too Low', @PPRICE = 500
--- EXEC ADD_PRODUCT @PRODID = 2, @PRODNAME ='Too Expensive', @PPRICE = 10000
--- EXEC ADD_PRODUCT @PRODID = 3, @PRODNAME ='Just Right', @PPRICE = 100
--- EXEC ADD_PRODUCT @PRODID = 3, @PRODNAME ='Just Right', @PPRICE = 100
+-- EXEC ADD_PRODUCT @PRODID = 100, @PRODNAME ='Too Low', @PPRICE = 500
+-- EXEC ADD_PRODUCT @PRODID = 2000, @PRODNAME ='Too Expensive', @PPRICE = 10000
+-- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right', @PPRICE = 100
+-- EXEC ADD_PRODUCT @PRODID = 2002, @PRODNAME ='Just Duplicate', @PPRICE = 100
 -- SELECT * FROM PRODUCT
-
-
 
 -- DELETE_ALL_PRODUCTS	(returns Int) - Delete all products from Product table.
 -- No Parameters
@@ -191,11 +184,8 @@ CREATE PROCEDURE DELETE_ALL_PRODUCTS AS
 
 BEGIN
     BEGIN TRY
-        DECLARE @NUMPROD INT;
-        SELECT @NUMPROD = COUNT(*) FROM PRODUCT
-
-        DELETE FROM CUSTOMER;
-        RETURN @NUMPROD;
+        DELETE FROM PRODUCT;
+        RETURN @@ROWCOUNT;
     END TRY
     BEGIN CATCH
         DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
@@ -205,10 +195,11 @@ END;
 
 GO
 
+---- testing ----
+-- EXEC ADD_PRODUCT @PRODID = 2003, @PRODNAME ='Just Right', @PPRICE = 100
 -- select * from PRODUCT;
 -- EXEC DELETE_ALL_PRODUCTS;
 -- select * from PRODUCT;
-
 
 -- GET_CUSTOMER_STRING - Get one customers details from customer table
 -- Parameters
@@ -221,26 +212,30 @@ GO
 -- 	No matching customer id found	50060. Customer ID not found
 -- 	Other	50000.  Use value of error_message()
 
+GO
 
 IF OBJECT_ID('GET_CUSTOMER_STRING') IS NOT NULL
 DROP PROCEDURE GET_CUSTOMER_STRING;
 GO
 
-CREATE PROCEDURE GET_CUSTOMER_STRING @PCUSTID INT AS
-
- --------------- TODO: From here --------------- 
-    SELECT * FROM CUSTOMER 
-    WHERE CUSTID = @PCUSTID
+CREATE PROCEDURE GET_CUSTOMER_STRING @PCUSTID INT, @pReturnString NVARCHAR(100) OUTPUT AS
 
 BEGIN
+    DECLARE @PCUSTNAME NVARCHAR(100), @STATUS NVARCHAR(7), @SALESYTD MONEY;
+
     BEGIN TRY
-        -- IF 
-        SELECT * FROM CUSTOMER WHERE CUSTID = @PCUSTID
+    SELECT @PCUSTNAME = CUSTNAME, @STATUS = [STATUS], @SALESYTD = SALES_YTD
+    FROM CUSTOMER 
+    WHERE CUSTID = @PCUSTID
+
+    IF @@ROWCOUNT = 0
+    THROW 50060, 'Customer ID not found', 1
+
+    SET @pReturnString = CONCAT('Custid: ', @PCUSTID, 'Name: ', @PCUSTNAME, 'Status: ', @STATUS, 'SalesYTD: ', @SALESYTD);
+
     END TRY
     BEGIN CATCH
-        if ERROR_NUMBER() = 2627
-            THROW 50010, 'Duplicate customer ID', 1
-        ELSE IF ERROR_NUMBER() = 50020
+        if ERROR_NUMBER() = 50060
             THROW
         ELSE
             BEGIN
@@ -248,7 +243,15 @@ BEGIN
                 THROW 50000, @ERRORMESSAGE, 1
             END; 
     END CATCH;
-
 END;
 
 GO
+
+---- testing ----
+BEGIN
+    DECLARE @OUTPUTVALUE NVARCHAR(100);
+    EXEC GET_CUSTOMER_STRING @pcustid=1, @preturnstring = @OUTPUTVALUE OUTPUT;
+    PRINT (@OUTPUTVALUE);
+END
+
+ --------------- TODO: From here --------------- 
