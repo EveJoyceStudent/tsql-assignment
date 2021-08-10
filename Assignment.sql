@@ -407,7 +407,6 @@ GO
 --------------- TODO: add testing --------------- 
 
 
---------------- TODO: finish procedure --------------- 
 
 -- SPEC09 UPD_CUSTOMER_STATUS - Update one customer's status value in the customer table
 -- Parameters
@@ -455,7 +454,6 @@ GO
 --------------- TODO: add testing --------------- 
 
 
-
 -- SPEC10 ADD_SIMPLE_SALE - Update one customer's status value in the customer table
 -- Parameters
 -- 	pcustid         Int	Customer Id
@@ -473,7 +471,56 @@ GO
 -- 	No matching customer id found	50160. Customer ID not found
 -- 	No matching product id found	50170. Product ID not found
 -- 	Other	                        50000.  Use value of error_message()
+GO
 
+IF OBJECT_ID('ADD_SIMPLE_SALE') IS NOT NULL
+DROP PROCEDURE ADD_SIMPLE_SALE;
+GO
+
+CREATE PROCEDURE ADD_SIMPLE_SALE @pcustid INT, @pprodid INT, @pqty INT AS
+BEGIN
+    BEGIN TRY
+
+    IF ((SELECT STATUS
+    FROM CUSTOMER
+    WHERE CUSTID = @pcustid) NOT IN ('OK'))
+        THROW 50150, 'Customer status is not OK', 1
+    IF @@ROWCOUNT = 0
+        THROW 50160, 'Customer ID not found', 1
+
+    IF @pqty<1 OR @pqty>999
+        THROW 50140, 'Sale Quantity outside valid range', 1
+
+    DECLARE @PRODSELLPRICE MONEY;
+    SELECT @PRODSELLPRICE = SELLING_PRICE
+    FROM PRODUCT
+    WHERE PRODID = @pprodid
+    IF @@ROWCOUNT = 0
+        THROW 50170, 'Customer ID not found', 1
+
+    DECLARE @UPDATEAMT MONEY
+    SET @UPDATEAMT = @PRODSELLPRICE*@PQTY;
+
+    EXEC UPD_CUST_SALESYTD @pcustid = @pcustid, @PAMT = @UPDATEAMT
+    EXEC UPD_PROD_SALESYTD @pprodid = @pprodid, @PAMT = @UPDATEAMT
+
+    END TRY
+    BEGIN CATCH
+        if ERROR_NUMBER() in (50150, 50160, 50140, 50170)
+            THROW
+        ELSE
+            BEGIN
+                DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+                THROW 50000, @ERRORMESSAGE, 1
+            END; 
+    END CATCH;
+END;
+
+GO
+--------------- TODO: add testing --------------- 
+
+
+--------------- TODO: finish procedure --------------- 
 
 -- SPEC11 SUM_CUSTOMER_SALESYTD - Sum and return the SalesYTD value of all rows in the Customer table
 -- Parameters
