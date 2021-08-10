@@ -520,14 +520,34 @@ GO
 --------------- TODO: add testing --------------- 
 
 
---------------- TODO: finish procedure --------------- 
 
 -- SPEC11 SUM_CUSTOMER_SALESYTD - Sum and return the SalesYTD value of all rows in the Customer table
 -- Parameters
 -- Requirements	Sum and return the SalesYTD value of all rows in the Customer table
 -- Exceptions
 -- 	Other	50000.  Use value of error_message()
+GO
 
+IF OBJECT_ID('SUM_CUSTOMER_SALESYTD') IS NOT NULL
+DROP PROCEDURE SUM_CUSTOMER_SALESYTD;
+GO
+
+CREATE PROCEDURE SUM_CUSTOMER_SALESYTD AS
+BEGIN
+    BEGIN TRY
+
+    SELECT SUM(SALES_YTD)
+    FROM CUSTOMER
+
+    END TRY
+    BEGIN CATCH
+        DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+        THROW 50000, @ERRORMESSAGE, 1
+    END CATCH;
+END;
+
+GO
+--------------- TODO: add testing --------------- 
 
 
 -- SPEC12 SUM_PRODUCT_SALESYTD - Sum and return the SalesYTD value of all rows in the Product table
@@ -535,18 +555,64 @@ GO
 -- Requirements	Sum and return the SalesYTD value of all rows in the Product table
 -- Exceptions
 -- 	Other	50000.  Use value of error_message()
+GO
+
+IF OBJECT_ID('SUM_PRODUCT_SALESYTD') IS NOT NULL
+DROP PROCEDURE SUM_PRODUCT_SALESYTD;
+GO
+
+CREATE PROCEDURE SUM_PRODUCT_SALESYTD AS
+BEGIN
+    BEGIN TRY
+
+    SELECT SUM(SALES_YTD)
+    FROM PRODUCT
+
+    END TRY
+    BEGIN CATCH
+        DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+        THROW 50000, @ERRORMESSAGE, 1
+    END CATCH;
+END;
+
+GO
+--------------- TODO: add testing --------------- 
 
 
-
+--------------- TODO: what's a ref cursor --------------- 
 -- SPEC13 GET_ALL_CUSTOMERS - Get all customer details and return as a SYS_REFCURSOR
 -- Parameters
 -- 	POUTCUR	Cursor	Output parameter Cursor
 -- Requirements	Get all customer details and assign to pOutCur
 -- Exceptions
 -- 	Other	50000.  Use value of error_message()
+GO
 
+IF OBJECT_ID('GET_ALL_CUSTOMERS') IS NOT NULL
+DROP PROCEDURE GET_ALL_CUSTOMERS;
+GO
 
+CREATE PROCEDURE GET_ALL_CUSTOMERS @POUTCUR SYS_REFCURSOR OUTPUT AS
+BEGIN
+    BEGIN TRY
 
+    -- OPEN POUTCUR FOR
+        SELECT *
+        FROM CUSTOMER
+    -- CLOSE POUTCUR;
+    -- RETURN POUTCUR;
+
+    END TRY
+    BEGIN CATCH
+        DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+        THROW 50000, @ERRORMESSAGE, 1
+    END CATCH;
+END;
+
+GO
+--------------- TODO: add testing --------------- 
+
+--------------- TODO: what's a ref cursor --------------- 
 -- SPEC14 GET_ALL_PRODUCTS - Get all product details and assign to pOutCur
 -- Parameters
 -- 	POUTCUR	Cursor	Output parameter Cursor
@@ -555,7 +621,7 @@ GO
 -- 	Other	50000.  Use value of error_message()
 
 
-
+--------------- TODO: finish procedure --------------- 
 -- SPEC15 ADD_LOCATION - Adds a new row to the location table
 -- Parameters
 -- 	ploccode	nvarchar	Location Code- format ‘locnn’    ‘nn’= int
