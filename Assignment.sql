@@ -24,13 +24,11 @@ GO
 -- 	pcustid outside range: 1-499	50020. Customer ID out of range
 -- 	Other	                        50000.  Use value of error_message()
 
-
 IF OBJECT_ID('ADD_CUSTOMER') IS NOT NULL
 DROP PROCEDURE ADD_CUSTOMER;
 GO
 
 CREATE PROCEDURE ADD_CUSTOMER @PCUSTID INT, @PCUSTNAME NVARCHAR(100) AS
-
 BEGIN
     BEGIN TRY
 
@@ -54,7 +52,6 @@ BEGIN
     END CATCH;
 
 END;
-
 GO
 
 -- testing
@@ -62,7 +59,6 @@ GO
 -- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude2';
 -- EXEC ADD_CUSTOMER @pcustid = 500, @pcustname = 'testdude3';
 -- select * from customer;
-
 
 
 -- SPEC02 DELETE_ALL_CUSTOMERS	Stored Procedure (returns Int) - Delete all customers from Customer table.
@@ -74,15 +70,11 @@ GO
 -- Exceptions
 -- 	Other	50000.  Use value of error_message()
 
-
-
 IF OBJECT_ID('DELETE_ALL_CUSTOMERS') IS NOT NULL
 DROP PROCEDURE DELETE_ALL_CUSTOMERS;
-
 GO
 
 CREATE PROCEDURE DELETE_ALL_CUSTOMERS AS
-
 BEGIN
     BEGIN TRY
         DELETE FROM CUSTOMER;
@@ -93,7 +85,6 @@ BEGIN
         THROW 50000, @ERRORMESSAGE, 1
     END CATCH;
 END;
-
 GO
 
 -- testing
@@ -103,7 +94,6 @@ GO
 -- select * from customer;
 -- EXEC DELETE_ALL_CUSTOMERS;
 -- select * from customer;
-
 
 
 -- SPEC03 ADD_PRODUCT - Add a new product to Product table.
@@ -121,13 +111,11 @@ GO
 -- 	pprice outside range: 0 – 999.99	50050. Price out of range
 -- 	Other	                            50000.  Use value of error_message()
 
-
 IF OBJECT_ID('ADD_PRODUCT') IS NOT NULL
 DROP PROCEDURE ADD_PRODUCT;
 GO
 
 CREATE PROCEDURE ADD_PRODUCT @PRODID INT, @PRODNAME NVARCHAR(100), @PPRICE MONEY AS
-
 BEGIN
     BEGIN TRY
 
@@ -154,9 +142,7 @@ BEGIN
                 THROW 50000, @ERRORMESSAGE, 1
             END; 
     END CATCH;
-
 END;
-
 GO
 
 -- testing
@@ -165,6 +151,7 @@ GO
 -- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right', @PPRICE = 100
 -- EXEC ADD_PRODUCT @PRODID = 2002, @PRODNAME ='Just Duplicate', @PPRICE = 100
 -- SELECT * FROM PRODUCT
+
 
 -- SPEC04 DELETE_ALL_PRODUCTS	(returns Int) - Delete all products from Product table.
 -- No Parameters
@@ -177,11 +164,9 @@ GO
 
 IF OBJECT_ID('DELETE_ALL_PRODUCTS') IS NOT NULL
 DROP PROCEDURE DELETE_ALL_PRODUCTS;
-
 GO
 
 CREATE PROCEDURE DELETE_ALL_PRODUCTS AS
-
 BEGIN
     BEGIN TRY
         DELETE FROM PRODUCT;
@@ -192,7 +177,6 @@ BEGIN
         THROW 50000, @ERRORMESSAGE, 1
     END CATCH;
 END;
-
 GO
 
 ---- testing ----
@@ -200,6 +184,7 @@ GO
 -- select * from PRODUCT;
 -- EXEC DELETE_ALL_PRODUCTS;
 -- select * from PRODUCT;
+
 
 -- SPEC05 GET_CUSTOMER_STRING - Get one customers details from customer table
 -- Parameters
@@ -212,14 +197,11 @@ GO
 -- 	No matching customer id found	50060. Customer ID not found
 -- 	Other	50000.  Use value of error_message()
 
-GO
-
 IF OBJECT_ID('GET_CUSTOMER_STRING') IS NOT NULL
 DROP PROCEDURE GET_CUSTOMER_STRING;
 GO
 
 CREATE PROCEDURE GET_CUSTOMER_STRING @PCUSTID INT, @pReturnString NVARCHAR(100) OUTPUT AS
-
 BEGIN
     DECLARE @PCUSTNAME NVARCHAR(100), @STATUS NVARCHAR(7), @SALESYTD MONEY;
 
@@ -244,7 +226,6 @@ BEGIN
             END; 
     END CATCH;
 END;
-
 GO
 
 ---- testing ----
@@ -253,6 +234,7 @@ BEGIN
     EXEC GET_CUSTOMER_STRING @pcustid=1, @preturnstring = @OUTPUTVALUE OUTPUT;
     PRINT (@OUTPUTVALUE);
 END
+
 
 -- SPEC06 UPD_CUST_SALESYTD - Update one customer's sales_ytd value in the customer table
 -- Parameters
@@ -264,9 +246,6 @@ END
 -- 	No rows updated	                        50070.  Customer ID not found
 -- 	pamt outside range:-999.99 to 999.99	50080.  Amount out of range
 -- 	Other	                                50000.  Use value of error_message()
-
-
-GO
 
 IF OBJECT_ID('UPD_CUST_SALESYTD') IS NOT NULL
 DROP PROCEDURE UPD_CUST_SALESYTD;
@@ -298,10 +277,9 @@ BEGIN
             END; 
     END CATCH;
 END;
-
 GO
 
---------------- TODO: Add testing --------------- 
+--------------- TODO: testing --------------- 
 ---- testing ----
 
 -- SPEC07 GET_PROD_STRING - Get one products details from product table
@@ -315,15 +293,11 @@ GO
 -- 	No matching product id found	50090.  Product ID not found
 -- 	Other	                        50000.  Use value of error_message()
 
-
-GO
-
 IF OBJECT_ID('GET_PROD_STRING') IS NOT NULL
 DROP PROCEDURE GET_PROD_STRING;
 GO
 
 CREATE PROCEDURE GET_PROD_STRING @PRODID INT, @pReturnString NVARCHAR(1000) OUTPUT AS
-
 BEGIN
     DECLARE @PRODNAME NVARCHAR(100), @PRICE MONEY, @SALESYTD MONEY;
 
@@ -348,17 +322,16 @@ BEGIN
             END; 
     END CATCH;
 END;
-
 GO
 
 ---- testing ----
-BEGIN
-    DECLARE @OUTPUTVALUE NVARCHAR(100);
-    EXEC GET_PROD_STRING @PRODID=2000, @preturnstring = @OUTPUTVALUE OUTPUT;
-    PRINT (@OUTPUTVALUE);
-END
+-- BEGIN
+--     DECLARE @OUTPUTVALUE NVARCHAR(100);
+--     EXEC GET_PROD_STRING @PRODID=2000, @preturnstring = @OUTPUTVALUE OUTPUT;
+--     PRINT (@OUTPUTVALUE);
+-- END
+-- GO
 
-GO
 
 -- SPEC08 UPD_PROD_SALESYTD - Update one product's sales_ytd value in the product table
 -- Parameters
@@ -370,7 +343,6 @@ GO
 -- 	pamt outside range:
 --      -999.99 to 999.99   	50110. Amount out of range
 -- 	Other                       50000. Use value of error_message()
-GO
 
 IF OBJECT_ID('UPD_PROD_SALESYTD') IS NOT NULL
 DROP PROCEDURE UPD_PROD_SALESYTD;
@@ -402,10 +374,8 @@ BEGIN
             END; 
     END CATCH;
 END;
-
 GO
---------------- TODO: add testing --------------- 
-
+--------------- TODO: testing --------------- 
 
 
 -- SPEC09 UPD_CUSTOMER_STATUS - Update one customer's status value in the customer table
@@ -418,7 +388,6 @@ GO
 -- 	Invalid status 
 -- (not either OK or SUSPEND)	50130. Invalid Status value
 -- 	Other	                    50000.  Use value of error_message()
-GO
 
 IF OBJECT_ID('UPD_CUSTOMER_STATUS') IS NOT NULL
 DROP PROCEDURE UPD_CUSTOMER_STATUS;
@@ -449,9 +418,8 @@ BEGIN
             END; 
     END CATCH;
 END;
-
 GO
---------------- TODO: add testing --------------- 
+--------------- TODO: testing --------------- 
 
 
 -- SPEC10 ADD_SIMPLE_SALE - Update one customer's status value in the customer table
@@ -471,7 +439,6 @@ GO
 -- 	No matching customer id found	50160. Customer ID not found
 -- 	No matching product id found	50170. Product ID not found
 -- 	Other	                        50000.  Use value of error_message()
-GO
 
 IF OBJECT_ID('ADD_SIMPLE_SALE') IS NOT NULL
 DROP PROCEDURE ADD_SIMPLE_SALE;
@@ -486,7 +453,7 @@ BEGIN
     WHERE CUSTID = @pcustid) NOT IN ('OK'))
         THROW 50150, 'Customer status is not OK', 1
     IF @@ROWCOUNT = 0
-        THROW 50160, 'Customer ID not found', 1
+        THROW 50160, 'Product ID not found', 1
 
     IF @pqty<1 OR @pqty>999
         THROW 50140, 'Sale Quantity outside valid range', 1
@@ -515,10 +482,8 @@ BEGIN
             END; 
     END CATCH;
 END;
-
 GO
---------------- TODO: add testing --------------- 
-
+--------------- TODO: testing --------------- 
 
 
 -- SPEC11 SUM_CUSTOMER_SALESYTD - Sum and return the SalesYTD value of all rows in the Customer table
@@ -526,7 +491,6 @@ GO
 -- Requirements	Sum and return the SalesYTD value of all rows in the Customer table
 -- Exceptions
 -- 	Other	50000.  Use value of error_message()
-GO
 
 IF OBJECT_ID('SUM_CUSTOMER_SALESYTD') IS NOT NULL
 DROP PROCEDURE SUM_CUSTOMER_SALESYTD;
@@ -547,7 +511,7 @@ BEGIN
 END;
 
 GO
---------------- TODO: add testing --------------- 
+--------------- TODO: testing --------------- 
 
 
 -- SPEC12 SUM_PRODUCT_SALESYTD - Sum and return the SalesYTD value of all rows in the Product table
@@ -555,7 +519,6 @@ GO
 -- Requirements	Sum and return the SalesYTD value of all rows in the Product table
 -- Exceptions
 -- 	Other	50000.  Use value of error_message()
-GO
 
 IF OBJECT_ID('SUM_PRODUCT_SALESYTD') IS NOT NULL
 DROP PROCEDURE SUM_PRODUCT_SALESYTD;
@@ -574,19 +537,17 @@ BEGIN
         THROW 50000, @ERRORMESSAGE, 1
     END CATCH;
 END;
-
 GO
---------------- TODO: add testing --------------- 
+--------------- TODO: testing --------------- 
 
 
---------------- TODO: what's a ref cursor --------------- 
+--------------- TODO: complete procedure - what's a ref cursor --------------- 
 -- SPEC13 GET_ALL_CUSTOMERS - Get all customer details and return as a SYS_REFCURSOR
 -- Parameters
 -- 	POUTCUR	Cursor	Output parameter Cursor
 -- Requirements	Get all customer details and assign to pOutCur
 -- Exceptions
 -- 	Other	50000.  Use value of error_message()
-GO
 
 IF OBJECT_ID('GET_ALL_CUSTOMERS') IS NOT NULL
 DROP PROCEDURE GET_ALL_CUSTOMERS;
@@ -608,11 +569,11 @@ BEGIN
         THROW 50000, @ERRORMESSAGE, 1
     END CATCH;
 END;
-
 GO
---------------- TODO: add testing --------------- 
+--------------- TODO: testing --------------- 
 
---------------- TODO: what's a ref cursor --------------- 
+
+--------------- TODO: complete procedure - what's a ref cursor --------------- 
 -- SPEC14 GET_ALL_PRODUCTS - Get all product details and assign to pOutCur
 -- Parameters
 -- 	POUTCUR	Cursor	Output parameter Cursor
@@ -621,7 +582,6 @@ GO
 -- 	Other	50000.  Use value of error_message()
 
 
---------------- TODO: finish procedure --------------- 
 -- SPEC15 ADD_LOCATION - Adds a new row to the location table
 -- Parameters
 -- 	ploccode	nvarchar	Location Code- format ‘locnn’    ‘nn’= int
@@ -636,6 +596,46 @@ GO
 -- 	CHECK_MAXQTY_GREATER_MIXQTY check failed	
 --                                  50220. Minimum Qty larger than Maximum Qty
 -- 	Other	                        50000.  Use value of error_message()
+
+IF OBJECT_ID('ADD_LOCATION') IS NOT NULL
+DROP PROCEDURE ADD_LOCATION;
+GO
+
+CREATE PROCEDURE ADD_LOCATION @ploccode NVARCHAR, @pminqty INT, @pmaxqty INT AS
+BEGIN
+    BEGIN TRY
+
+        IF LEN(@ploccode)!=5
+            THROW 50190, 'Location Code length invalid', 1
+        
+        IF @pminqty < 0 OR @pminqty > 999
+            THROW 50200, 'Minimum Qty out of range', 1
+
+        IF @pmaxqty < 0 OR @pmaxqty > 999
+            THROW 50210, 'Maximum Qty out of range', 1
+
+        IF @pmaxqty < @pminqty
+            THROW 50220, 'Minimum Qty larger than Maximum Qty', 1
+
+        INSERT INTO LOCATION (LOCID, MINQTY, MAXQTY) 
+        VALUES (@ploccode, @pminqty, @pmaxqty);
+
+    END TRY
+    BEGIN CATCH
+        if ERROR_NUMBER() = 2627
+                THROW 50180, 'Duplicate location ID', 1
+        if ERROR_NUMBER() in (50190, 50200, 50210, 50220)
+            THROW
+        ELSE
+            BEGIN
+                DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+                THROW 50000, @ERRORMESSAGE, 1
+            END; 
+    END CATCH;
+END;
+GO
+--------------- TODO: testing --------------- 
+
 
 -- SPEC16 ADD_COMPLEX_SALE - Adds a complex sale to the database
 -- Parameters
@@ -660,15 +660,69 @@ GO
 -- 	No matching product id found	50270. Product ID not found
 -- 	Other	                        50000.  Use value of error_message()
 
+IF OBJECT_ID('ADD_COMPLEX_SALE') IS NOT NULL
+DROP PROCEDURE ADD_COMPLEX_SALE;
+GO
+
+CREATE PROCEDURE ADD_COMPLEX_SALE @pcustid INT, @pprodid INT, @pqty INT, @pdate NVARCHAR AS
+BEGIN
+    BEGIN TRY
+
+        IF ((SELECT STATUS
+        FROM CUSTOMER
+        WHERE CUSTID = @pcustid) NOT IN ('OK'))
+            THROW 50240, 'Customer status is not OK', 1
+        IF @@ROWCOUNT = 0
+            THROW 50260, 'Customer ID not found', 1
+
+        IF @pqty<1 OR @pqty>999
+            THROW 50230, 'Sale Quantity outside valid range', 1
+
+        DECLARE @PRODSELLPRICE MONEY;
+        SELECT @PRODSELLPRICE = SELLING_PRICE
+        FROM PRODUCT
+        WHERE PRODID = @pprodid
+        IF @@ROWCOUNT = 0
+            THROW 50270, 'Product ID not found', 1
+
+        SELECT DATE(@pdate);
+        IF @@ROWCOUNT = 0
+            THROW 50250, 'Date not valid', 1
+
+        DECLARE @SALEIDFROMSEQ BIGINT;
+        SELECT @SALEIDFROMSEQ = NEXT VALUE FOR SALE_SEQ;
+
+        INSERT INTO SALE(SALEID, CUSTID, PRODID, QTY, PRICE, SALEDATE) 
+        VALUES (@SALEIDFROMSEQ, @pcustid, @pprodid, @pqty, @PRODSELLPRICE, DATE(@pdate));
+
+        DECLARE @UPDATEAMT MONEY
+        SET @UPDATEAMT = @PRODSELLPRICE*@PQTY;
+
+        EXEC UPD_CUST_SALESYTD @pcustid = @pcustid, @PAMT = @UPDATEAMT
+        EXEC UPD_PROD_SALESYTD @pprodid = @pprodid, @PAMT = @UPDATEAMT
+
+    END TRY
+    BEGIN CATCH
+        if ERROR_NUMBER() in (50240, 50260, 50230, 50270, 50250)
+            THROW
+        ELSE
+            BEGIN
+                DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+                THROW 50000, @ERRORMESSAGE, 1
+            END; 
+    END CATCH;
+END;
+GO
+--------------- TODO: testing --------------- 
 
 
+--------------- TODO: complete procedure - whats a ref cursor --------------- 
 -- SPEC17 GET_ALLSALES - Get all customer details and return as a SYS_REFCURSOR
 -- Parameters
 -- 	POUTCUR	Cursor	Output parameter Cursor
 -- Requirements	Get all complex sale details and assign to pOutCur
 -- Exceptions
 -- 	Other	50000.  Use value of error_message()
-
 
 
 -- SPEC18 COUNT_PRODUCT_SALES - Count and return the int of sales with nn days of current date
@@ -678,9 +732,29 @@ GO
 -- Exceptions
 -- 	Other	50000.  Use value of error_message()
 
+IF OBJECT_ID('COUNT_PRODUCT_SALES') IS NOT NULL
+DROP PROCEDURE COUNT_PRODUCT_SALES;
+GO
+
+CREATE PROCEDURE COUNT_PRODUCT_SALES @pdays INT, @pcount INT OUTPUT AS
+BEGIN
+    BEGIN TRY
+
+    SELECT COUNT(SALEID) FROM SALE
+    WHERE SALEDATE>=(GETDATE()-@pdays)
+
+    END TRY
+    BEGIN CATCH
+        DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+        THROW 50000, @ERRORMESSAGE, 1
+    END CATCH;
+END;
+GO
+--------------- TODO: testing --------------- 
+
 
 -- SPEC19 DELETE_SALE - Delete a row from the SALE table
--- Parameters
+-- Parameters saleid out PARAM
 -- Requirements	Determine the smallest saleid value in the SALE table.  (use Select MIN()…)
 -- If the value is NULL raise a No Sale Rows Found exception.
 -- Otherwise delete a row from the SALE table with the matching sale id
@@ -692,14 +766,80 @@ GO
 -- 	No Sale Rows Found	50280. No Sale Rows Found
 -- 	Other	            50000.  Use value of error_message()
 
+IF OBJECT_ID('DELETE_SALE') IS NOT NULL
+DROP PROCEDURE DELETE_SALE;
+GO
+
+CREATE PROCEDURE DELETE_SALE @saleid INT OUTPUT AS
+BEGIN
+    BEGIN TRY
+        DECLARE @salepcustid INT, @salepprodid INT, @UPDATEAMT INT;
+
+        SELECT @saleid = MIN(SALEID) FROM SALE
+        IF @@ROWCOUNT = 0
+            THROW 50280, 'No Sale Rows Found', 1
+        
+        -- UPD_CUST_SALES_YTD
+        -- UPD_PROD_SALES_YTD
+        SELECT @salepcustid = CUSTID FROM SALE
+        WHERE SALEID = @saleid;
+        SELECT @salepprodid = PRODID FROM SALE
+        WHERE SALEID = @saleid;
+        SELECT @UPDATEAMT = QTY*PRICE FROM SALE
+        WHERE SALEID = @saleid;
+        
+        EXEC UPD_CUST_SALESYTD @pcustid = @salepcustid, @PAMT = @UPDATEAMT
+        EXEC UPD_PROD_SALESYTD @pprodid = @salepprodid, @PAMT = @UPDATEAMT
+
+        DELETE FROM SALE
+        WHERE SALEID = @saleid;
+
+    END TRY
+    BEGIN CATCH
+        if ERROR_NUMBER() in (50280)
+            THROW
+        ELSE
+            BEGIN
+                DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+                THROW 50000, @ERRORMESSAGE, 1
+            END; 
+    END CATCH;
+END;
+GO
+--------------- TODO: testing --------------- 
 
 
 -- SPEC20 DELETE_ALL_SALES - Delete a row from the SALE table
--- Parameters
+-- Parameters NONE
 -- Requirements	Delete all rows in the SALE table 
 -- Set the Sales_YTD value to zero for all rows in the Customer and Product tables
 -- Exceptions
 -- 	Other	50000.  Use value of error_message()
+
+IF OBJECT_ID('DELETE_ALL_SALES') IS NOT NULL
+DROP PROCEDURE DELETE_ALL_SALES;
+GO
+
+CREATE PROCEDURE DELETE_ALL_SALES AS
+BEGIN
+    BEGIN TRY
+
+        DELETE FROM SALE
+
+        UPDATE CUSTOMER
+        SET SALES_YTD=0;
+        UPDATE PRODUCT
+        SET SALES_YTD=0;        
+
+    END TRY
+    BEGIN CATCH
+        DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+        THROW 50000, @ERRORMESSAGE, 1
+    END CATCH;
+END;
+GO
+--------------- TODO: testing --------------- 
+
 
 -- SPEC21 DELETE_CUSTOMER - Delete a row from the Customer table
 -- Parameters
@@ -711,6 +851,34 @@ GO
 -- 	Customer has child complexsales rows	50300. Customer cannot be deleted as sales exist
 -- 	Other	                                50000.  Use value of error_message()
 
+IF OBJECT_ID('DELETE_CUSTOMER') IS NOT NULL
+DROP PROCEDURE DELETE_CUSTOMER;
+GO
+
+CREATE PROCEDURE DELETE_CUSTOMER @pCustid INT AS
+BEGIN
+    BEGIN TRY
+
+        DELETE FROM CUSTOMER
+        WHERE CUSTID = @pCustid
+        IF @@ROWCOUNT = 0
+            THROW 50290, 'Customer ID not found', 1
+
+    END TRY
+    BEGIN CATCH
+        if ERROR_NUMBER() = 2292
+            THROW 50300, 'Customer cannot be deleted as sales exist', 1
+        ELSE if ERROR_NUMBER() in (50290)
+            THROW
+        ELSE
+            BEGIN
+                DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+                THROW 50000, @ERRORMESSAGE, 1
+            END; 
+    END CATCH;
+END;
+GO
+--------------- TODO: testing --------------- 
 
 
 -- SPEC22 DELETE_PRODUCT - Delete a row from the Product table
@@ -723,3 +891,32 @@ GO
 -- 	No matching Product id found	    50310. Product ID not found
 -- 	Product has child complexsales rows	50320. Product cannot be deleted as sales exist
 -- 	Other	                            50000.  Use value of error_message()
+
+IF OBJECT_ID('DELETE_PRODUCT') IS NOT NULL
+DROP PROCEDURE DELETE_PRODUCT;
+GO
+
+CREATE PROCEDURE DELETE_PRODUCT @pProdid INT AS
+BEGIN
+    BEGIN TRY
+
+        DELETE FROM PRODUCT
+        WHERE PRODID = @pProdid
+        IF @@ROWCOUNT = 0
+            THROW 50310, 'Product ID not found', 1
+
+    END TRY
+    BEGIN CATCH
+        if ERROR_NUMBER() = 2292
+            THROW 50320, 'Product cannot be deleted as sales exist', 1
+        ELSE if ERROR_NUMBER() in (50310)
+            THROW
+        ELSE
+            BEGIN
+                DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+                THROW 50000, @ERRORMESSAGE, 1
+            END; 
+    END CATCH;
+END;
+GO
+--------------- TODO: testing --------------- 
