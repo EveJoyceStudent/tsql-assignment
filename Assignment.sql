@@ -229,11 +229,11 @@ END;
 GO
 
 ---- testing ----
-BEGIN
-    DECLARE @OUTPUTVALUE NVARCHAR(100);
-    EXEC GET_CUSTOMER_STRING @pcustid=1, @preturnstring = @OUTPUTVALUE OUTPUT;
-    PRINT (@OUTPUTVALUE);
-END
+-- BEGIN
+--     DECLARE @OUTPUTVALUE NVARCHAR(100);
+--     EXEC GET_CUSTOMER_STRING @pcustid=1, @preturnstring = @OUTPUTVALUE OUTPUT;
+--     PRINT (@OUTPUTVALUE);
+-- END
 
 
 -- SPEC06 UPD_CUST_SALESYTD - Update one customer's sales_ytd value in the customer table
@@ -279,8 +279,21 @@ BEGIN
 END;
 GO
 
---------------- TODO: testing --------------- 
 ---- testing ----
+-- DELETE FROM CUSTOMER
+-- SELECT * FROM CUSTOMER
+-- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude1';
+-- EXEC ADD_CUSTOMER @pcustid = 2, @pcustname = 'testdude2';
+-- EXEC ADD_CUSTOMER @pcustid = 3, @pcustname = 'testdude3';
+-- SELECT * FROM CUSTOMER
+
+-- EXEC UPD_CUST_SALESYTD @pcustid = 1, @PAMT = 100;
+-- EXEC UPD_CUST_SALESYTD @pcustid = 2, @PAMT = 1000;
+-- EXEC UPD_CUST_SALESYTD @pcustid = 2, @PAMT = -1000;
+-- EXEC UPD_CUST_SALESYTD @pcustid = 3, @PAMT = 0;
+-- EXEC UPD_CUST_SALESYTD @pcustid = 4, @PAMT = 100;
+-- SELECT * FROM CUSTOMER
+
 
 -- SPEC07 GET_PROD_STRING - Get one products details from product table
 -- Parameters
@@ -375,7 +388,20 @@ BEGIN
     END CATCH;
 END;
 GO
---------------- TODO: testing --------------- 
+---- testing ----
+-- DELETE FROM PRODUCT
+-- SELECT * FROM PRODUCT
+-- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right 1', @PPRICE = 100
+-- EXEC ADD_PRODUCT @PRODID = 2002, @PRODNAME ='Just Right 2', @PPRICE = 200
+-- EXEC ADD_PRODUCT @PRODID = 2003, @PRODNAME ='Just Right 3', @PPRICE = 300
+-- SELECT * FROM PRODUCT
+
+-- EXEC UPD_PROD_SALESYTD @pprodid = 2001, @PAMT = 100;
+-- EXEC UPD_PROD_SALESYTD @pprodid = 2002, @PAMT = -1000;
+-- EXEC UPD_PROD_SALESYTD @pprodid = 2002, @PAMT = 1000;
+-- EXEC UPD_PROD_SALESYTD @pprodid = 2003, @PAMT = 0;
+-- EXEC UPD_PROD_SALESYTD @pprodid = 2004, @PAMT = 100;
+-- SELECT * FROM PRODUCT
 
 
 -- SPEC09 UPD_CUSTOMER_STATUS - Update one customer's status value in the customer table
@@ -393,7 +419,7 @@ IF OBJECT_ID('UPD_CUSTOMER_STATUS') IS NOT NULL
 DROP PROCEDURE UPD_CUSTOMER_STATUS;
 GO
 
-CREATE PROCEDURE UPD_CUSTOMER_STATUS @pcustid INT, @pstatus NVARCHAR AS
+CREATE PROCEDURE UPD_CUSTOMER_STATUS @pcustid INT, @pstatus NVARCHAR(7) AS
 BEGIN
     BEGIN TRY
 
@@ -419,7 +445,21 @@ BEGIN
     END CATCH;
 END;
 GO
---------------- TODO: testing --------------- 
+---- testing ----
+-- DELETE FROM CUSTOMER
+-- SELECT * FROM CUSTOMER
+-- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude1';
+-- EXEC ADD_CUSTOMER @pcustid = 2, @pcustname = 'testdude2';
+-- EXEC ADD_CUSTOMER @pcustid = 3, @pcustname = 'testdude3';
+-- SELECT * FROM CUSTOMER
+
+-- EXEC UPD_CUSTOMER_STATUS @pcustid = 1, @pstatus = 'OK';
+-- EXEC UPD_CUSTOMER_STATUS @pcustid = 2, @pstatus = 'SUSPEND';
+-- SELECT * FROM CUSTOMER
+
+-- EXEC UPD_CUSTOMER_STATUS @pcustid = 2, @pstatus = 'BAD';
+-- EXEC UPD_CUSTOMER_STATUS @pcustid = 3, @pstatus = '';
+-- EXEC UPD_CUSTOMER_STATUS @pcustid = 4, @pstatus = 'OK';
 
 
 -- SPEC10 ADD_SIMPLE_SALE - Update one customer's status value in the customer table
@@ -448,12 +488,16 @@ CREATE PROCEDURE ADD_SIMPLE_SALE @pcustid INT, @pprodid INT, @pqty INT AS
 BEGIN
     BEGIN TRY
 
-    IF ((SELECT STATUS
+    DECLARE @custstatus NVARCHAR(7);
+
+    SELECT @custstatus = STATUS
     FROM CUSTOMER
-    WHERE CUSTID = @pcustid) NOT IN ('OK'))
-        THROW 50150, 'Customer status is not OK', 1
+    WHERE CUSTID = @pcustid
     IF @@ROWCOUNT = 0
-        THROW 50160, 'Product ID not found', 1
+        THROW 50160, 'Customer ID not found', 1
+
+    IF (@custstatus NOT IN ('OK'))
+        THROW 50150, 'Customer status is not OK', 1
 
     IF @pqty<1 OR @pqty>999
         THROW 50140, 'Sale Quantity outside valid range', 1
@@ -463,10 +507,16 @@ BEGIN
     FROM PRODUCT
     WHERE PRODID = @pprodid
     IF @@ROWCOUNT = 0
-        THROW 50170, 'Customer ID not found', 1
+        THROW 50170, 'Product ID not found', 1
 
     DECLARE @UPDATEAMT MONEY
     SET @UPDATEAMT = @PRODSELLPRICE*@PQTY;
+
+    -- DECLARE @SALEIDFROMSEQ BIGINT;
+    -- SELECT @SALEIDFROMSEQ = NEXT VALUE FOR SALE_SEQ;
+
+    -- INSERT INTO SALE(SALEID, CUSTID, PRODID, QTY, PRICE, SALEDATE) 
+    -- VALUES (@SALEIDFROMSEQ, @pcustid, @pprodid, @pqty, @PRODSELLPRICE, CAST( GETDATE() AS Date ));
 
     EXEC UPD_CUST_SALESYTD @pcustid = @pcustid, @PAMT = @UPDATEAMT
     EXEC UPD_PROD_SALESYTD @pprodid = @pprodid, @PAMT = @UPDATEAMT
@@ -483,7 +533,28 @@ BEGIN
     END CATCH;
 END;
 GO
---------------- TODO: testing --------------- 
+---- testing ----
+-- DELETE FROM SALE
+-- DELETE FROM PRODUCT
+-- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right 1', @PPRICE = 10
+-- SELECT * FROM PRODUCT
+
+-- DELETE FROM CUSTOMER
+-- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude1';
+-- EXEC ADD_CUSTOMER @pcustid = 2, @pcustname = 'testdude2';
+-- EXEC UPD_CUSTOMER_STATUS @pcustid = 2, @pstatus = 'SUSPEND';
+-- SELECT * FROM CUSTOMER
+
+-- EXEC ADD_SIMPLE_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10;
+-- SELECT * FROM PRODUCT
+-- SELECT * FROM CUSTOMER
+-- SELECT * FROM SALE
+
+-- EXEC ADD_SIMPLE_SALE @pcustid = 2, @pprodid = 2001, @pqty = 100;
+-- EXEC ADD_SIMPLE_SALE @pcustid = 3, @pprodid = 2001, @pqty = 100;
+-- EXEC ADD_SIMPLE_SALE @pcustid = 1, @pprodid = 2001, @pqty = 0;
+-- EXEC ADD_SIMPLE_SALE @pcustid = 1, @pprodid = 2001, @pqty = 1000;
+-- EXEC ADD_SIMPLE_SALE @pcustid = 1, @pprodid = 2002, @pqty = 100;
 
 
 -- SPEC11 SUM_CUSTOMER_SALESYTD - Sum and return the SalesYTD value of all rows in the Customer table
@@ -511,8 +582,28 @@ BEGIN
 END;
 
 GO
---------------- TODO: testing --------------- 
 
+---- testing ----
+-- DELETE FROM SALE
+
+-- DELETE FROM PRODUCT
+-- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right 1', @PPRICE = 10
+-- EXEC ADD_PRODUCT @PRODID = 2002, @PRODNAME ='Just Right 2', @PPRICE = 1
+-- SELECT * FROM PRODUCT
+
+-- DELETE FROM CUSTOMER
+-- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude1';
+-- EXEC ADD_CUSTOMER @pcustid = 2, @pcustname = 'testdude2';
+-- EXEC ADD_CUSTOMER @pcustid = 3, @pcustname = 'testdude3';
+-- SELECT * FROM CUSTOMER
+
+-- EXEC ADD_SIMPLE_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10;
+-- EXEC ADD_SIMPLE_SALE @pcustid = 2, @pprodid = 2001, @pqty = 1;
+-- EXEC ADD_SIMPLE_SALE @pcustid = 2, @pprodid = 2002, @pqty = 5;
+-- SELECT * FROM CUSTOMER
+-- -- SELECT * FROM SALE
+
+-- EXEC SUM_CUSTOMER_SALESYTD;
 
 -- SPEC12 SUM_PRODUCT_SALESYTD - Sum and return the SalesYTD value of all rows in the Product table
 -- Parameters
@@ -538,10 +629,30 @@ BEGIN
     END CATCH;
 END;
 GO
---------------- TODO: testing --------------- 
+
+---- testing ----
+-- DELETE FROM SALE
+
+-- DELETE FROM PRODUCT
+-- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right 1', @PPRICE = 10
+-- EXEC ADD_PRODUCT @PRODID = 2002, @PRODNAME ='Just Right 2', @PPRICE = 1
+-- SELECT * FROM PRODUCT
+
+-- DELETE FROM CUSTOMER
+-- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude1';
+-- EXEC ADD_CUSTOMER @pcustid = 2, @pcustname = 'testdude2';
+-- EXEC ADD_CUSTOMER @pcustid = 3, @pcustname = 'testdude3';
+-- SELECT * FROM CUSTOMER
+
+-- EXEC ADD_SIMPLE_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10;
+-- EXEC ADD_SIMPLE_SALE @pcustid = 2, @pprodid = 2001, @pqty = 1;
+-- EXEC ADD_SIMPLE_SALE @pcustid = 2, @pprodid = 2002, @pqty = 5;
+-- SELECT * FROM CUSTOMER
+-- -- SELECT * FROM SALE
+
+-- EXEC SUM_PRODUCT_SALESYTD;
 
 
---------------- TODO: complete procedure - what's a ref cursor --------------- 
 -- SPEC13 GET_ALL_CUSTOMERS - Get all customer details and return as a SYS_REFCURSOR
 -- Parameters
 -- 	POUTCUR	Cursor	Output parameter Cursor
@@ -553,15 +664,15 @@ IF OBJECT_ID('GET_ALL_CUSTOMERS') IS NOT NULL
 DROP PROCEDURE GET_ALL_CUSTOMERS;
 GO
 
-CREATE PROCEDURE GET_ALL_CUSTOMERS @POUTCUR SYS_REFCURSOR OUTPUT AS
+CREATE PROCEDURE GET_ALL_CUSTOMERS @POUTCUR CURSOR VARYING OUTPUT AS
 BEGIN
     BEGIN TRY
 
-    -- OPEN POUTCUR FOR
-        SELECT *
-        FROM CUSTOMER
-    -- CLOSE POUTCUR;
-    -- RETURN POUTCUR;
+        SET @POUTCUR = CURSOR FOR
+            SELECT *
+            FROM CUSTOMER
+
+        OPEN @POUTCUR;
 
     END TRY
     BEGIN CATCH
@@ -570,10 +681,29 @@ BEGIN
     END CATCH;
 END;
 GO
---------------- TODO: testing --------------- 
+--------------- testing --------------- 
+
+-- DELETE FROM CUSTOMER
+-- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude1';
+-- EXEC ADD_CUSTOMER @pcustid = 2, @pcustname = 'testdude2';
+-- EXEC ADD_CUSTOMER @pcustid = 3, @pcustname = 'testdude3';
+
+-- BEGIN
+--     DECLARE @CUSTID INT, @CUSTNAME NVARCHAR(100), @SALES_YTD MONEY, @STATUS NVARCHAR(7);
+--     DECLARE @OUTCUR AS CURSOR
+--     EXEC GET_ALL_CUSTOMERS @POUTCUR = @OUTCUR OUTPUT;
+--     FETCH NEXT FROM @OUTCUR INTO @CUSTID, @CUSTNAME, @SALES_YTD, @STATUS
+--     WHILE @@FETCH_STATUS=0
+--     BEGIN
+--         PRINT CONCAT(@CUSTID, ' ', @CUSTNAME, ' ', @SALES_YTD, ' ', @STATUS)
+--         FETCH NEXT FROM @OUTCUR INTO @CUSTID, @CUSTNAME, @SALES_YTD, @STATUS
+--     END
+    
+--     CLOSE @OUTCUR;
+--     DEALLOCATE @OUTCUR;
+-- END
 
 
---------------- TODO: complete procedure - what's a ref cursor --------------- 
 -- SPEC14 GET_ALL_PRODUCTS - Get all product details and assign to pOutCur
 -- Parameters
 -- 	POUTCUR	Cursor	Output parameter Cursor
@@ -581,6 +711,49 @@ GO
 -- Exceptions
 -- 	Other	50000.  Use value of error_message()
 
+IF OBJECT_ID('GET_ALL_PRODUCTS') IS NOT NULL
+DROP PROCEDURE GET_ALL_PRODUCTS;
+GO
+
+CREATE PROCEDURE GET_ALL_PRODUCTS @POUTCUR CURSOR VARYING OUTPUT AS
+BEGIN
+    BEGIN TRY
+
+        SET @POUTCUR = CURSOR FOR
+            SELECT *
+            FROM PRODUCT
+
+        OPEN @POUTCUR;
+
+    END TRY
+    BEGIN CATCH
+        DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+        THROW 50000, @ERRORMESSAGE, 1
+    END CATCH;
+END;
+GO
+
+--------------- testing --------------- 
+-- DELETE FROM PRODUCT
+-- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right 1', @PPRICE = 10
+-- EXEC ADD_PRODUCT @PRODID = 2002, @PRODNAME ='Just Right 2', @PPRICE = 1
+-- SELECT * FROM PRODUCT
+
+
+-- BEGIN
+--     DECLARE @PRODID INT, @PRODNAME NVARCHAR(100), @SELLING_PRICE MONEY, @SALES_YTD MONEY;
+--     DECLARE @OUTCUR AS CURSOR
+--     EXEC GET_ALL_PRODUCTS @POUTCUR = @OUTCUR OUTPUT;
+--     FETCH NEXT FROM @OUTCUR INTO @PRODID, @PRODNAME, @SELLING_PRICE, @SALES_YTD
+--     WHILE @@FETCH_STATUS=0
+--     BEGIN
+--         PRINT CONCAT(@PRODID, ' ', @PRODNAME, ' ', @SELLING_PRICE, ' ', @SALES_YTD)
+--         FETCH NEXT FROM @OUTCUR INTO @PRODID, @PRODNAME, @SELLING_PRICE, @SALES_YTD
+--     END
+    
+--     CLOSE @OUTCUR;
+--     DEALLOCATE @OUTCUR;
+-- END
 
 -- SPEC15 ADD_LOCATION - Adds a new row to the location table
 -- Parameters
@@ -597,11 +770,12 @@ GO
 --                                  50220. Minimum Qty larger than Maximum Qty
 -- 	Other	                        50000.  Use value of error_message()
 
+
 IF OBJECT_ID('ADD_LOCATION') IS NOT NULL
 DROP PROCEDURE ADD_LOCATION;
 GO
 
-CREATE PROCEDURE ADD_LOCATION @ploccode NVARCHAR, @pminqty INT, @pmaxqty INT AS
+CREATE PROCEDURE ADD_LOCATION @ploccode NVARCHAR(5), @pminqty INT, @pmaxqty INT AS
 BEGIN
     BEGIN TRY
 
@@ -634,7 +808,19 @@ BEGIN
     END CATCH;
 END;
 GO
---------------- TODO: testing --------------- 
+
+--------------- testing --------------- 
+-- DELETE FROM LOCATION
+-- EXEC ADD_LOCATION @ploccode = 'loc01', @pminqty = 0, @pmaxqty = 999;
+-- SELECT * FROM LOCATION
+
+-- EXEC ADD_LOCATION @ploccode = 'loc01', @pminqty = 0, @pmaxqty = 999;
+-- EXEC ADD_LOCATION @ploccode = 'loc1', @pminqty = 0, @pmaxqty = 999;
+-- EXEC ADD_LOCATION @ploccode = 'loc02', @pminqty =-1000, @pmaxqty = 999;
+-- EXEC ADD_LOCATION @ploccode = 'loc02', @pminqty =1000, @pmaxqty = 999;
+-- EXEC ADD_LOCATION @ploccode = 'loc02', @pminqty =0, @pmaxqty = -1;
+-- EXEC ADD_LOCATION @ploccode = 'loc02', @pminqty =0, @pmaxqty = 1000;
+-- EXEC ADD_LOCATION @ploccode = 'loc02', @pminqty =1, @pmaxqty = 0;
 
 
 -- SPEC16 ADD_COMPLEX_SALE - Adds a complex sale to the database
@@ -664,16 +850,20 @@ IF OBJECT_ID('ADD_COMPLEX_SALE') IS NOT NULL
 DROP PROCEDURE ADD_COMPLEX_SALE;
 GO
 
-CREATE PROCEDURE ADD_COMPLEX_SALE @pcustid INT, @pprodid INT, @pqty INT, @pdate NVARCHAR AS
+CREATE PROCEDURE ADD_COMPLEX_SALE @pcustid INT, @pprodid INT, @pqty INT, @pdate NVARCHAR(8) AS
 BEGIN
     BEGIN TRY
 
-        IF ((SELECT STATUS
+        DECLARE @custstatus NVARCHAR(7);
+
+        SELECT @custstatus = STATUS
         FROM CUSTOMER
-        WHERE CUSTID = @pcustid) NOT IN ('OK'))
-            THROW 50240, 'Customer status is not OK', 1
+        WHERE CUSTID = @pcustid
         IF @@ROWCOUNT = 0
             THROW 50260, 'Customer ID not found', 1
+
+        IF (@custstatus NOT IN ('OK'))
+            THROW 50240, 'Customer status is not OK', 1
 
         IF @pqty<1 OR @pqty>999
             THROW 50230, 'Sale Quantity outside valid range', 1
@@ -684,16 +874,15 @@ BEGIN
         WHERE PRODID = @pprodid
         IF @@ROWCOUNT = 0
             THROW 50270, 'Product ID not found', 1
-
-        SELECT DATE(@pdate);
-        IF @@ROWCOUNT = 0
+        
+        IF (ISDATE(@pdate) = 0)
             THROW 50250, 'Date not valid', 1
 
         DECLARE @SALEIDFROMSEQ BIGINT;
         SELECT @SALEIDFROMSEQ = NEXT VALUE FOR SALE_SEQ;
 
         INSERT INTO SALE(SALEID, CUSTID, PRODID, QTY, PRICE, SALEDATE) 
-        VALUES (@SALEIDFROMSEQ, @pcustid, @pprodid, @pqty, @PRODSELLPRICE, DATE(@pdate));
+        VALUES (@SALEIDFROMSEQ, @pcustid, @pprodid, @pqty, @PRODSELLPRICE, CONVERT(DATE, @pdate, 112));
 
         DECLARE @UPDATEAMT MONEY
         SET @UPDATEAMT = @PRODSELLPRICE*@PQTY;
@@ -713,16 +902,91 @@ BEGIN
     END CATCH;
 END;
 GO
---------------- TODO: testing --------------- 
+
+---- testing ----
+-- DELETE FROM SALE
+-- DELETE FROM PRODUCT
+-- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right 1', @PPRICE = 10
+-- SELECT * FROM PRODUCT
+
+-- DELETE FROM CUSTOMER
+-- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude1';
+-- EXEC ADD_CUSTOMER @pcustid = 2, @pcustname = 'testdude2';
+-- EXEC UPD_CUSTOMER_STATUS @pcustid = 2, @pstatus = 'SUSPEND';
+-- SELECT * FROM CUSTOMER
+
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20210821';
+-- SELECT * FROM PRODUCT
+-- SELECT * FROM CUSTOMER
+-- SELECT * FROM SALE
+
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 100, @pdate = '2021082';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 100, @pdate = '2021-08-21';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 2, @pprodid = 2001, @pqty = 100, @pdate = '20210821';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 3, @pprodid = 2001, @pqty = 100, @pdate = '20210821';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 0, @pdate = '20210821';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 1000, @pdate = '20210821';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2002, @pqty = 100, @pdate = '20210821';
 
 
---------------- TODO: complete procedure - whats a ref cursor --------------- 
 -- SPEC17 GET_ALLSALES - Get all customer details and return as a SYS_REFCURSOR
 -- Parameters
 -- 	POUTCUR	Cursor	Output parameter Cursor
 -- Requirements	Get all complex sale details and assign to pOutCur
 -- Exceptions
 -- 	Other	50000.  Use value of error_message()
+
+IF OBJECT_ID('GET_ALLSALES') IS NOT NULL
+DROP PROCEDURE GET_ALLSALES;
+GO
+
+CREATE PROCEDURE GET_ALLSALES @POUTCUR CURSOR VARYING OUTPUT AS
+BEGIN
+    BEGIN TRY
+
+        SET @POUTCUR = CURSOR FOR
+            SELECT *
+            FROM SALE
+
+        OPEN @POUTCUR;
+
+    END TRY
+    BEGIN CATCH
+        DECLARE @ERRORMESSAGE NVARCHAR(MAX) = ERROR_MESSAGE();
+        THROW 50000, @ERRORMESSAGE, 1
+    END CATCH;
+END;
+GO
+
+--------------- testing --------------- 
+-- DELETE FROM SALE
+-- DELETE FROM PRODUCT
+-- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right 1', @PPRICE = 10
+
+-- DELETE FROM CUSTOMER
+-- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude1';
+
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20210821';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20210811';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20200821';
+-- SELECT * FROM PRODUCT
+-- SELECT * FROM CUSTOMER
+-- SELECT * FROM SALE
+
+-- BEGIN
+--     DECLARE @SALEID BIGINT, @CUSTID INT, @PRODID INT, @QTY INT, @PRICE MONEY, @SALEDATE DATE;
+--     DECLARE @OUTCUR AS CURSOR
+--     EXEC GET_ALLSALES @POUTCUR = @OUTCUR OUTPUT;
+--     FETCH NEXT FROM @OUTCUR INTO @SALEID, @CUSTID, @PRODID, @QTY, @PRICE, @SALEDATE
+--     WHILE @@FETCH_STATUS=0
+--     BEGIN
+--         PRINT CONCAT(@SALEID, ' ', @CUSTID, ' ', @PRODID, ' ', @QTY, ' ', @PRICE, ' ', @SALEDATE)
+--         FETCH NEXT FROM @OUTCUR INTO @SALEID, @CUSTID, @PRODID, @QTY, @PRICE, @SALEDATE
+--     END
+    
+--     CLOSE @OUTCUR;
+--     DEALLOCATE @OUTCUR;
+-- END
 
 
 -- SPEC18 COUNT_PRODUCT_SALES - Count and return the int of sales with nn days of current date
@@ -750,7 +1014,34 @@ BEGIN
     END CATCH;
 END;
 GO
---------------- TODO: testing --------------- 
+
+--------------- testing --------------- 
+-- DELETE FROM SALE
+-- DELETE FROM PRODUCT
+-- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right 1', @PPRICE = 10
+
+-- DELETE FROM CUSTOMER
+-- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude1';
+
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20210821';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20210811';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20200821';
+-- SELECT * FROM PRODUCT
+-- SELECT * FROM CUSTOMER
+-- SELECT * FROM SALE
+
+-- BEGIN
+--     DECLARE @OUTPUTVALUE INT;
+--     EXEC COUNT_PRODUCT_SALES @pdays=0, @pcount = @OUTPUTVALUE OUTPUT;
+--     PRINT (@OUTPUTVALUE);
+--     EXEC COUNT_PRODUCT_SALES @pdays=1, @pcount = @OUTPUTVALUE OUTPUT;
+--     PRINT (@OUTPUTVALUE);
+--     EXEC COUNT_PRODUCT_SALES @pdays=11, @pcount = @OUTPUTVALUE OUTPUT;
+--     PRINT (@OUTPUTVALUE);
+--     EXEC COUNT_PRODUCT_SALES @pdays=1000, @pcount = @OUTPUTVALUE OUTPUT;
+--     PRINT (@OUTPUTVALUE);
+-- END
+-- GO
 
 
 -- SPEC19 DELETE_SALE - Delete a row from the SALE table
@@ -770,17 +1061,15 @@ IF OBJECT_ID('DELETE_SALE') IS NOT NULL
 DROP PROCEDURE DELETE_SALE;
 GO
 
-CREATE PROCEDURE DELETE_SALE @saleid INT OUTPUT AS
+CREATE PROCEDURE DELETE_SALE @saleid BIGINT OUTPUT AS
 BEGIN
     BEGIN TRY
         DECLARE @salepcustid INT, @salepprodid INT, @UPDATEAMT INT;
 
         SELECT @saleid = MIN(SALEID) FROM SALE
-        IF @@ROWCOUNT = 0
+        IF @saleid IS NULL
             THROW 50280, 'No Sale Rows Found', 1
         
-        -- UPD_CUST_SALES_YTD
-        -- UPD_PROD_SALES_YTD
         SELECT @salepcustid = CUSTID FROM SALE
         WHERE SALEID = @saleid;
         SELECT @salepprodid = PRODID FROM SALE
@@ -806,7 +1095,43 @@ BEGIN
     END CATCH;
 END;
 GO
---------------- TODO: testing --------------- 
+
+--------------- testing --------------- 
+-- DELETE FROM SALE
+-- DELETE FROM PRODUCT
+-- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right 1', @PPRICE = 10
+
+-- DELETE FROM CUSTOMER
+-- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude1';
+
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20210821';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20210811';
+-- SELECT * FROM PRODUCT
+-- SELECT * FROM CUSTOMER
+-- SELECT * FROM SALE
+
+-- BEGIN
+--     DECLARE @OUTPUTVALUE BIGINT;
+--     EXEC DELETE_SALE @saleid = @OUTPUTVALUE OUTPUT;
+--     PRINT (@OUTPUTVALUE);
+-- END
+-- GO
+
+-- BEGIN
+--     DECLARE @OUTPUTVALUE BIGINT;
+--     EXEC DELETE_SALE @saleid = @OUTPUTVALUE OUTPUT;
+--     PRINT (@OUTPUTVALUE);
+-- END
+-- GO
+
+-- SELECT * FROM SALE
+
+-- BEGIN
+--     DECLARE @OUTPUTVALUE BIGINT;
+--     EXEC DELETE_SALE @saleid = @OUTPUTVALUE OUTPUT;
+--     PRINT (@OUTPUTVALUE);
+-- END
+-- GO
 
 
 -- SPEC20 DELETE_ALL_SALES - Delete a row from the SALE table
@@ -838,7 +1163,25 @@ BEGIN
     END CATCH;
 END;
 GO
---------------- TODO: testing --------------- 
+
+--------------- testing --------------- 
+-- DELETE FROM SALE
+-- DELETE FROM PRODUCT
+-- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right 1', @PPRICE = 10
+
+-- DELETE FROM CUSTOMER
+-- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude1';
+
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20210821';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20210811';
+-- SELECT * FROM PRODUCT
+-- SELECT * FROM CUSTOMER
+-- SELECT * FROM SALE
+
+-- EXEC DELETE_ALL_SALES;
+-- SELECT * FROM PRODUCT
+-- SELECT * FROM CUSTOMER
+-- SELECT * FROM SALE
 
 
 -- SPEC21 DELETE_CUSTOMER - Delete a row from the Customer table
@@ -866,7 +1209,7 @@ BEGIN
 
     END TRY
     BEGIN CATCH
-        if ERROR_NUMBER() = 2292
+        if ERROR_NUMBER() = 547
             THROW 50300, 'Customer cannot be deleted as sales exist', 1
         ELSE if ERROR_NUMBER() in (50290)
             THROW
@@ -878,7 +1221,33 @@ BEGIN
     END CATCH;
 END;
 GO
---------------- TODO: testing --------------- 
+--------------- testing --------------- 
+
+-- DELETE FROM SALE
+-- DELETE FROM PRODUCT
+-- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right 1', @PPRICE = 10
+
+-- DELETE FROM CUSTOMER
+-- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude1';
+
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20210821';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20210811';
+-- SELECT * FROM PRODUCT
+-- SELECT * FROM CUSTOMER
+-- SELECT * FROM SALE
+
+-- DELETE FROM CUSTOMER
+--     WHERE CUSTID =1
+
+-- EXEC DELETE_CUSTOMER @pCustid = 1;
+
+-- EXEC DELETE_ALL_SALES;
+
+-- EXEC DELETE_CUSTOMER @pCustid = 1;
+
+-- SELECT * FROM CUSTOMER
+
+-- EXEC DELETE_CUSTOMER @pCustid = 1;
 
 
 -- SPEC22 DELETE_PRODUCT - Delete a row from the Product table
@@ -907,7 +1276,7 @@ BEGIN
 
     END TRY
     BEGIN CATCH
-        if ERROR_NUMBER() = 2292
+        if ERROR_NUMBER() = 547
             THROW 50320, 'Product cannot be deleted as sales exist', 1
         ELSE if ERROR_NUMBER() in (50310)
             THROW
@@ -919,4 +1288,27 @@ BEGIN
     END CATCH;
 END;
 GO
---------------- TODO: testing --------------- 
+--------------- testing --------------- 
+
+-- DELETE FROM SALE
+-- DELETE FROM PRODUCT
+-- EXEC ADD_PRODUCT @PRODID = 2001, @PRODNAME ='Just Right 1', @PPRICE = 10
+
+-- DELETE FROM CUSTOMER
+-- EXEC ADD_CUSTOMER @pcustid = 1, @pcustname = 'testdude1';
+
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20210821';
+-- EXEC ADD_COMPLEX_SALE @pcustid = 1, @pprodid = 2001, @pqty = 10, @pdate = '20210811';
+-- SELECT * FROM PRODUCT
+-- SELECT * FROM CUSTOMER
+-- SELECT * FROM SALE
+
+-- EXEC DELETE_PRODUCT @pProdid = 2001;
+
+-- EXEC DELETE_ALL_SALES;
+
+-- EXEC DELETE_PRODUCT @pProdid = 2001;
+
+-- SELECT * FROM PRODUCT
+
+-- EXEC DELETE_PRODUCT @pProdid = 2001;
